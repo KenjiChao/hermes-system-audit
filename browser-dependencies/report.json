@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-17",
+  "title": "瀏覽器與依賴審核",
+  "subtitle": "先確認風險，再做可回復的修補。",
+  "state": {
+    "audit": "complete",
+    "deployment": "not_deployed",
+    "tests": "pending",
+    "browser_cleanup": "not_performed"
+  },
+  "scope": "這是本次唯讀審核的公開刪節摘要，不是上一輪深度清理的重新驗收。版本命中不等於正在被利用；目前未證實預設工作流可端到端利用。",
+  "counts": {"browser_daemons": 123, "public_packages_scanned": 132},
+  "browser_heading": "先確認斷線，再確認工作已結案。",
+  "browser_lead": "初次唯讀審核未確認安全清理對象；後續核對即時 IPC、呼叫結果與上層工作後，列出 13 個小範圍候選。尚未執行關閉，預計先做 1 個試點，其餘逐名再驗。",
+  "browser": [
+    {"title": "123 個是背景 daemon，不是 123 個 Chrome", "body": "約 66 秒的雙快照期間，全組未見可測 CPU time 增量或 IP 連線。這只表示觀察窗內暫時靜止，不能證明沒有待處理工作或未來重用需求。"},
+    {"title": "來源可追溯，現行權屬仍不確定", "body": "已核對建立來源與歷史呼叫，但建立來源不是現行獨占擁有者。來源工作已結束，也不等於可以關閉；既有分頁、共用工作與遠端資源的保留需求仍待確認。"},
+    {"title": "沒有關閉程序，也沒有回收成果", "body": "使用者 Chrome 持續有活動，cmux 也保留。daemon 的 RSS 加總約 1,912 MiB，會包含共享映射，不能當成可釋放實體記憶體；實際回收量為零，可安全回收量未知。"}
+  ],
+  "packages": [
+    {"name": "httpx2", "installed": "2.7.0", "locked": "2.7.0", "fixed": "2.12.0", "advisories": ["GHSA-pf96-p4fj-6566", "GHSA-f2fp-rgf2-35cp", "GHSA-7mj9-2mp8-4m2p", "GHSA-h4x7-gw46-3wm6", "GHSA-8xx6-hgc6-gc2m"], "context": "審核時未啟用原生遠端 MCP。HTTPX2 與一般 httpx 是不同套件，不能把這些公告直接套到所有 HTTP 請求。", "recommendation": "需同步處理來源與延遲安裝的版本固定、lock 及正式安裝；與新版 httpcore2 按 metadata 相容配對。先驗 HTTP／SSE、OAuth 與解壓邊界。"},
+    {"name": "httpcore2", "installed": "2.7.0", "locked": "2.7.0", "fixed": "2.10.0", "advisories": ["GHSA-7mj9-2mp8-4m2p"], "context": "與 httpx2 共用同一 TLS 公告，不重複計為獨立缺陷。審核未找到相關 SOCKS5／WebSocket 啟用路徑。", "recommendation": "公告修復界線為 2.10.0；實際目標版本以新版 httpx2 的相容要求為準，不自行硬湊版本。"},
+    {"name": "Tornado", "installed": "6.5.7", "locked": "6.5.8", "fixed": "6.5.8", "advisories": ["GHSA-mpf4-983q-p7j4", "GHSA-wwv5-g3v4-889x", "GHSA-8423-8fgw-73vq"], "context": "審核時 Telegram 使用 polling，不走 Tornado webhook parser。這縮小現行暴露面，不代表未來開啟 webhook 已安全。", "recommendation": "將正式安裝與已修復的 lock 對齊並驗相容性；若要啟用 webhook，額外驗表單解析。驗證或允許清單不是 parser 修補。"},
+    {"name": "Pygments", "installed": "2.19.2", "locked": "2.20.0", "fixed": "2.20.0", "advisories": ["GHSA-5239-wwwm-4pmq"], "context": "良性離線測試確認 Rich Markdown 的 ADL 程式碼可到達該 lexer；但審核時主 CLI 最終輸出不走此渲染，Telegram 也不是此 Python lexer。插件說明另有渲染路徑。", "recommendation": "對齊 lock 後測試 Rich 與插件說明渲染；不要將特定 lexer 風險泛化成所有 Markdown 都受影響。"},
+    {"name": "Click", "installed": "8.3.1", "locked": "8.4.2", "fixed": "8.3.3", "advisories": ["GHSA-47fr-3ffg-hgmw"], "context": "未找到受查來源或已安裝套件呼叫 editor 路徑。使用 Click 作一般 CLI，不等於觸發此漏洞。", "recommendation": "lock 已越過修復界線；窄範圍對齊正式安裝後驗證 CLI 相容性。"},
+    {"name": "pydantic-settings", "installed": "2.13.1", "locked": "2.14.2", "fixed": "2.14.2", "advisories": ["GHSA-4xgf-cpjx-pc3j"], "context": "未找到受查來源與安裝套件實例化受影響 NestedSecrets 來源的呼叫。套件名稱含 settings，不代表設定或憑證已外洩。", "recommendation": "對齊 lock 並驗設定載入；若使用巢狀 secrets，另驗目錄與符號連結邊界。"},
+    {"name": "PyNaCl", "installed": "1.5.0", "locked": "1.6.2", "fixed": "1.6.2", "advisories": ["GHSA-mrfv-m5wm-5w6w"], "context": "未找到受查程式呼叫該低階點檢查 API。Discord voice 的 secret API 與此不同；維護者指出高階簽章 API 不受此缺漏影響。", "recommendation": "保留既有 uv override 語意，驗 Discord voice 相容性；一般 pip 不會套用 uv override，不能直接升級整個環境。修復界線是 1.6.2，不是任意 1.6.x。"}
+  ],
+  "advisories": [
+    {"id": "GHSA-pf96-p4fj-6566", "title": "HTTP 長度與傳輸標頭衝突", "fixed": "2.11.0", "condition": "需攻擊者影響傳輸編碼標頭與本文，且 HTTP/1.1 中介與來源伺服器解讀不同。離線建構已確認衝突可存在，但未證實現行端到端利用。", "url": "https://github.com/pydantic/httpx2/security/advisories/GHSA-pf96-p4fj-6566"},
+    {"id": "GHSA-f2fp-rgf2-35cp", "title": "SSE 長行 CPU 放大", "fixed": "2.10.0", "condition": "需接收不可信或失陷遠端端點的 SSE 未終止長行。傳輸大小上限只限制部分輸入，不會修正舊解析器的二次方處理行為。", "url": "https://github.com/pydantic/httpx2/security/advisories/GHSA-f2fp-rgf2-35cp"},
+    {"id": "GHSA-7mj9-2mp8-4m2p", "title": "SOCKS5 下的 wss 缺少 TLS", "fixed": "2.10.0", "condition": "需 wss 經 SOCKS5，且攻擊者能控制或觀察代理路徑；普通 HTTPS 不受此項影響。此公告同時命中 httpx2 與 httpcore2。", "url": "https://github.com/pydantic/httpx2/security/advisories/GHSA-7mj9-2mp8-4m2p"},
+    {"id": "GHSA-h4x7-gw46-3wm6", "title": "Multipart 分段標頭注入", "fixed": "2.11.0", "condition": "需不可信的內容型別或自訂檔案標頭進入檔案上傳 API。未找到受查遠端客戶端使用此路徑；離線建構確認驗證缺漏，不是已證實下游影響。", "url": "https://github.com/pydantic/httpx2/security/advisories/GHSA-h4x7-gw46-3wm6"},
+    {"id": "GHSA-8xx6-hgc6-gc2m", "title": "壓縮回應的解壓記憶體放大", "fixed": "2.12.0", "condition": "需相關 HTTP 客戶端接收惡意壓縮回應，例如不可信遠端 MCP 或 OAuth 端點。壓縮傳輸大小上限不能保證解壓後的配置量有界；後續文字掃描也太晚。", "url": "https://github.com/pydantic/httpx2/security/advisories/GHSA-8xx6-hgc6-gc2m"},
+    {"id": "GHSA-mpf4-983q-p7j4", "title": "URL-encoded 表單欄位數 DoS", "fixed": "6.5.8", "condition": "需 HTTP 請求進入 Tornado 表單解析器。解析可能早於 handler 驗證；未來啟用 webhook 時，不能只靠允許清單或 secret 當成修補。", "url": "https://github.com/tornadoweb/tornado/security/advisories/GHSA-mpf4-983q-p7j4"},
+    {"id": "GHSA-wwv5-g3v4-889x", "title": "Legacy cookie 屬性注入", "fixed": "6.5.8", "condition": "需應用把不可信 cookie 屬性交給大寫或舊式關鍵字參數；未找到受查路徑。原公告修復欄仍寫 None；本審核交叉核對 OSV、6.5.8 release 與來源碼後採 6.5.8。", "url": "https://github.com/tornadoweb/tornado/security/advisories/GHSA-wwv5-g3v4-889x", "extra_sources": [{"title": "6.5.8 發行說明", "url": "https://raw.githubusercontent.com/tornadoweb/tornado/v6.5.8/docs/releases/v6.5.8.rst"}, {"title": "6.5.8 修正來源", "url": "https://raw.githubusercontent.com/tornadoweb/tornado/v6.5.8/tornado/web.py"}]},
+    {"id": "GHSA-8423-8fgw-73vq", "title": "Multipart 暫存列表記憶體放大", "fixed": "6.5.8", "condition": "需請求進入 Tornado HTTP multipart parser；本文切割早於分段數檢查。審核時的 Telegram polling 不進入這條路徑。", "url": "https://github.com/tornadoweb/tornado/security/advisories/GHSA-8423-8fgw-73vq"},
+    {"id": "GHSA-5239-wwwm-4pmq", "title": "ADL／archetype lexer ReDoS", "fixed": "2.20.0", "condition": "需實際使用受影響的 ADL／archetype lexer 渲染攻擊者可影響的內容。不是所有 Markdown 都會使用此 lexer。", "url": "https://github.com/pygments/pygments/releases/tag/2.20.0"},
+    {"id": "GHSA-47fr-3ffg-hgmw", "title": "Click editor 檔名命令注入", "fixed": "8.3.3", "condition": "需不可信檔名進入 Click editor API；一般 CLI 參數解析不是同一受影響功能。", "url": "https://github.com/tsigouris007/security-advisories/security/advisories/GHSA-47fr-3ffg-hgmw", "osv_id": "PYSEC-2026-2132", "extra_sources": [{"title": "Click 8.3.3 修復說明", "url": "https://click.palletsprojects.com/en/stable/changes/#version-8-3-3"}]},
+    {"id": "GHSA-4xgf-cpjx-pc3j", "title": "NestedSecrets 越界符號連結讀取", "fixed": "2.14.2", "condition": "需主動啟用巢狀 secrets 子目錄功能，且攻擊者能在 secrets 目錄置入符號連結。只安裝套件不足以成立。", "url": "https://github.com/pydantic/pydantic-settings/security/advisories/GHSA-4xgf-cpjx-pc3j"},
+    {"id": "GHSA-mrfv-m5wm-5w6w", "title": "libsodium Ed25519 子群檢查缺漏", "fixed": "1.6.2", "condition": "需低階 Ed25519 點有效性檢查處理不可信點；不能推論一般高階簽章可偽造。本次沒有對 wheel 內原生函式庫做利用或完整性鑑識。", "url": "https://00f.net/2025/12/30/libsodium-vulnerability", "extra_sources": [{"title": "PyNaCl 1.6.2 changelog", "url": "https://raw.githubusercontent.com/pyca/pynacl/1.6.2/CHANGELOG.rst"}]}
+  ],
+  "next_steps": [
+    {"title": "先保存回復點，再做窄範圍依賴對齊", "body": "保存正式安裝清單、來源與 lock 的回復版本；先在隔離環境驗證五個 lock 已修復但實裝落後的套件。不直接全環境升級，也不以依賴 metadata 相容取代漏洞掃描。"},
+    {"title": "HTTPX2 成組修補，通過測試才部署", "body": "同步修正來源固定、延遲安裝與 lock，測 HTTP／SSE、OAuth、傳輸限制、CLI／Rich、PyNaCl 相關相容性。正式安裝、服務載入與功能實測分開記錄，再重新掃描實裝版本。"},
+    {"title": "瀏覽器逐名確認，不做批次終止", "body": "確認目前工作、共享名稱、分頁及遠端資源的權屬。先保存可重建的工作狀態，確認生命週期與復原方式，再逐項處理；關閉可能丟失分頁，不能承諾完全可逆。使用者 Chrome 與 cmux 排除批次清理。"}
+  ],
+  "limits": [
+    "132 個公共 Python 套件完成版本掃描；僅排除本機 editable 專案本體。這不是整機安全掃描。",
+    "沒有涵蓋其他環境／profile、OS、CPython、Chrome、Node 或原生元件的獨立漏洞掃描，也未做完整上游測試、DoS 或利用測試。",
+    "未配置或未找到呼叫只表示當下證據較弱，不是不可達證明。新功能、外部內容或未收錄公告仍可能改變風險。",
+    "本機觀察與數量來自私有審核證據，未公開原始檔；外部連結支持漏洞機制與修復界線，不是本機現況的公開證明。"
+  ],
+  "sources": [
+    {"title": "Hermes 瀏覽器功能與生命週期說明", "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/browser/"},
+    {"title": "Hermes 安全模型", "url": "https://hermes-agent.nousresearch.com/docs/user-guide/security/"},
+    {"title": "pip-audit：版本公告掃描工具", "url": "https://github.com/pypa/pip-audit"}
+  ]
+}

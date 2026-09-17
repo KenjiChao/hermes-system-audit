@@ -1,5 +1,10 @@
 {
   "date": "2026-09-17",
+  "latest_review": {
+    "title": "最新審核：瀏覽器與依賴",
+    "url": "browser-dependencies/",
+    "description": "本頁保留前輪深度清理驗收紀錄；後續瀏覽器與依賴的審核結果、修補狀態與待驗證事項，請看獨立子頁。"
+  },
   "title": "Hermes 深度清理驗收",
   "subtitle": "修正、交付與服務定義均已完成驗收。",
   "intro": "修補、Skill 與記憶清理已完成，354 項整合測試通過。重啟後已核對新 worker，完成真實 Telegram 文字／SRT 往返及既有 cron 交付測試。使用者另執行官方服務更新後，父代理確認 launchd 已載入新定義、Telegram 正常連線，服務落後與待重啟警告均已消失。",
