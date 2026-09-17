@@ -8,6 +8,6 @@ Mobile-first, public-safe summary of the 2026-09-17 audit and subsequent authori
 
 Build with `python3 build.py`.
 
-Reviewed source/patch and knowledge changes were installed and independently tested. The Gateway was not restarted: disk verification is not a claim of live-process activation. Scheduled delivery is configured but awaits its next actual run.
+Reviewed source/patch and knowledge changes were installed and independently tested. After the user restarted the Gateway, the new worker identity was verified, real Telegram text/SRT round trips passed, and the existing cron job completed a read-only delivery test. The launchd service definition is still stale and requires a separate service refresh outside an active Gateway turn.
 
 Raw configuration, logs, credentials, account identifiers and private evidence remain excluded. This is a point-in-time report, not a live dashboard or a guarantee of zero regressions. See the final section for unperformed work and known limitations.
