@@ -38,7 +38,7 @@ for p in packages:
     cards.append(f'''<details class="package" id="pkg-{e(p['name'].lower())}"><summary><span class="package-name">{e(p['name'])}</span><span class="package-meta">實裝 {e(p['installed'])} → 修復界線 {e(p['fixed'])}</span><span class="micro">{len(p['advisories'])} 筆命中 · 展開前提與來源</span></summary><div class="package-body"><p class="version">審核時 lock：{e(p['locked'])}。修復界線不是已驗收的升級目標。</p><p>{e(p['context'])}</p><p class="recommendation"><strong>建議</strong>{e(p['recommendation'])}</p>{''.join(advisory_card(advisories[key]) for key in p['advisories'])}</div></details>''')
 
 stats = ''.join(f'<div><b>{value}</b><span>{label}</span></div>' for value, label in [
-    (counts['browser_daemons'], '背景 daemon'), (counts['public_packages_scanned'], '公共套件實掃'),
+    (counts['browser_daemons'], '初次盤點 daemon'), (counts['public_packages_scanned'], '公共套件實掃'),
     (counts['packages'], '命中套件'), (counts['advisories'], '去重安全公告')])
 browser_cards = ''.join(f'<article class="note"><h3>{e(x["title"])}</h3><p>{e(x["body"])}</p></article>' for x in r['browser'])
 steps = ''.join(f'<li><h3>{e(x["title"])}</h3><p>{e(x["body"])}</p></li>' for x in r['next_steps'])
@@ -56,7 +56,7 @@ page = f'''<!doctype html>
 <nav class="toc" aria-label="章節導覽"><a href="#browser">瀏覽器</a><a href="#dependencies">依賴與公告</a><a href="#next">處理順序</a><a href="#limits">查核界線</a></nav>
 <section class="section" id="browser"><span class="number">01 / BROWSER</span><h2>{e(r['browser_heading'])}</h2><p class="lead">{e(r['browser_lead'])}</p>{browser_cards}<p class="callout">判斷核心是目前的工作與資源權屬，不是程序年齡、父程序已退出，或建立來源已結案。</p></section>
 <section class="section" id="dependencies"><span class="number">02 / DEPENDENCIES</span><h2>{counts['packages']} 個套件，風險要看前提。</h2><p class="lead">{counts['public_packages_scanned']} 個公共套件實掃，產生 {counts['matches']} 筆「套件 × 公告」命中；httpx2 與 httpcore2 共用一項，因此去重為 {counts['advisories']} 項公告。</p><p>{counts['lock_fixed_installed_old']} 個套件的 lock 已含修復版，正式安裝卻仍舊；httpx2／httpcore2 則連 lock 都停在舊版。<strong>只看 lock 更新或依賴相容檢查通過，不能當成修補已部署。</strong></p><p class="pill">點開套件，看利用條件、修復版本與原始連結。</p>{''.join(cards)}</section>
-<section class="section" id="next"><span class="number">03 / NEXT STEPS</span><h2>建議順序，不是已完成事項。</h2><p class="lead">{e(status)}。以下仍是後續處置建議。</p><ol class="steps">{steps}</ol></section>
+<section class="section" id="next"><span class="number">03 / NEXT STEPS</span><h2>處理順序與實際進度。</h2><p class="lead">{e(status)}。已完成與尚待處理項目分開記錄。</p><ol class="steps">{steps}</ol></section>
 <section class="section" id="limits"><span class="number">04 / BOUNDARIES</span><h2>哪些已確認，哪些還不知道。</h2><ul class="limits">{limits}</ul></section>
 <footer><h3>參考文件</h3><p>每項安全公告的原始連結與 OSV 範圍，放在對應套件的展開卡片內。</p><ul>{sources}</ul><p class="privacy"><strong>這是公開網頁。</strong>noindex 只要求搜尋引擎不收錄，不是存取保護。此頁僅含手工挑選的刪節資料，不含帳號識別、憑證、原始命令、環境、設定或日誌。</p><p>{e(r['date'])} · {e(status)} · {e(state['browser_cleanup'])}</p><a href="../">回到前輪驗收紀錄</a> · <a href="#top">回頁首</a></footer></main></body></html>
 '''

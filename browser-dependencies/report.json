@@ -6,16 +6,16 @@
     "audit": "complete",
     "deployment": "not_deployed",
     "tests": "pending",
-    "browser_cleanup": "not_performed"
+    "browser_cleanup": "partial"
   },
-  "scope": "這是本次唯讀審核的公開刪節摘要，不是上一輪深度清理的重新驗收。版本命中不等於正在被利用；目前未證實預設工作流可端到端利用。",
+  "scope": "本頁記錄審核結果與後續處置，不是上一輪深度清理的重新驗收。已逐名關閉 13 個確認斷線且工作結案的 daemon，110 個保留；依賴修補仍在隔離測試，尚未部署。",
   "counts": {"browser_daemons": 123, "public_packages_scanned": 132},
-  "browser_heading": "先確認斷線，再確認工作已結案。",
-  "browser_lead": "初次唯讀審核未確認安全清理對象；後續核對即時 IPC、呼叫結果與上層工作後，列出 13 個小範圍候選。尚未執行關閉，預計先做 1 個試點，其餘逐名再驗。",
+  "browser_heading": "已逐名清理 13 個，其餘 110 個保留。",
+  "browser_lead": "先做 1 個試點，確認退出與其他程序不變後，再逐名處理 12 個。每次均重新核對固定程序身分、已結束的呼叫與上層工作、無在途 IPC 和瀏覽器斷線狀態，使用官方生命週期停止；沒有批次殺程序。",
   "browser": [
     {"title": "123 個是背景 daemon，不是 123 個 Chrome", "body": "約 66 秒的雙快照期間，全組未見可測 CPU time 增量或 IP 連線。這只表示觀察窗內暫時靜止，不能證明沒有待處理工作或未來重用需求。"},
     {"title": "來源可追溯，現行權屬仍不確定", "body": "已核對建立來源與歷史呼叫，但建立來源不是現行獨占擁有者。來源工作已結束，也不等於可以關閉；既有分頁、共用工作與遠端資源的保留需求仍待確認。"},
-    {"title": "沒有關閉程序，也沒有回收成果", "body": "使用者 Chrome 持續有活動，cmux 也保留。daemon 的 RSS 加總約 1,912 MiB，會包含共享映射，不能當成可釋放實體記憶體；實際回收量為零，可安全回收量未知。"}
+    {"title": "停止 13 個控制程序，沒有關閉使用者 Chrome", "body": "13 個目標均已退出，其 PID 與 socket 紀錄已移除；其餘 110 個 daemon、Chrome、cmux 與 Gateway 主程序身分均維持不變。被移除程序的 RSS 加總約 273 MiB，這不是精確可回收實體 RAM。沒有連接 Chrome 去關閉分頁，也未宣稱逐頁狀態已驗證。"}
   ],
   "packages": [
     {"name": "httpx2", "installed": "2.7.0", "locked": "2.7.0", "fixed": "2.12.0", "advisories": ["GHSA-pf96-p4fj-6566", "GHSA-f2fp-rgf2-35cp", "GHSA-7mj9-2mp8-4m2p", "GHSA-h4x7-gw46-3wm6", "GHSA-8xx6-hgc6-gc2m"], "context": "審核時未啟用原生遠端 MCP。HTTPX2 與一般 httpx 是不同套件，不能把這些公告直接套到所有 HTTP 請求。", "recommendation": "需同步處理來源與延遲安裝的版本固定、lock 及正式安裝；與新版 httpcore2 按 metadata 相容配對。先驗 HTTP／SSE、OAuth 與解壓邊界。"},
@@ -43,7 +43,7 @@
   "next_steps": [
     {"title": "先保存回復點，再做窄範圍依賴對齊", "body": "保存正式安裝清單、來源與 lock 的回復版本；先在隔離環境驗證五個 lock 已修復但實裝落後的套件。不直接全環境升級，也不以依賴 metadata 相容取代漏洞掃描。"},
     {"title": "HTTPX2 成組修補，通過測試才部署", "body": "同步修正來源固定、延遲安裝與 lock，測 HTTP／SSE、OAuth、傳輸限制、CLI／Rich、PyNaCl 相關相容性。正式安裝、服務載入與功能實測分開記錄，再重新掃描實裝版本。"},
-    {"title": "瀏覽器逐名確認，不做批次終止", "body": "確認目前工作、共享名稱、分頁及遠端資源的權屬。先保存可重建的工作狀態，確認生命週期與復原方式，再逐項處理；關閉可能丟失分頁，不能承諾完全可逆。使用者 Chrome 與 cmux 排除批次清理。"}
+    {"title": "瀏覽器首輪清理完成，保留未確認權屬的其餘程序", "body": "已用官方逐名停止方式完成 13 個已結案且斷線的目標，110 個保留。停止 daemon 不可復原原記憶體狀態；日後需要時由原工作正常建立新 daemon，不複製回舊 PID／socket。未新增排程，也未關閉使用者 Chrome 或 cmux。"}
   ],
   "limits": [
     "132 個公共 Python 套件完成版本掃描；僅排除本機 editable 專案本體。這不是整機安全掃描。",
