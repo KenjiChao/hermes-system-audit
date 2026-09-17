@@ -1,9 +1,9 @@
 {
   "date": "2026-09-17",
   "title": "Hermes 深度清理驗收",
-  "subtitle": "重啟後驗收通過，服務定義仍待更新。",
-  "intro": "修補、Skill 與記憶清理已完成。使用者重啟 Gateway 後，已核對新 worker 與部署檔案，並完成真實 Telegram 文字／SRT 往返測試及既有 cron 的實際交付測試。仍有一項獨立界線：舊 launchd 服務定義不會因單純重啟而更新；目前仍有 stale 警告，尚未宣稱這項完成。",
-  "status": "重啟與交付已驗證・服務定義待更新",
+  "subtitle": "修正、交付與服務定義均已完成驗收。",
+  "intro": "修補、Skill 與記憶清理已完成，354 項整合測試通過。重啟後已核對新 worker，完成真實 Telegram 文字／SRT 往返及既有 cron 交付測試。使用者另執行官方服務更新後，父代理確認 launchd 已載入新定義、Telegram 正常連線，服務落後與待重啟警告均已消失。",
+  "status": "本輪修正驗收完成",
   "stats": [
     {
       "value": "354／0",
@@ -126,10 +126,10 @@
           "evidence": "最後一次完整重播為 354／0，另有部署前整合測試 354／0。獨立 Telegram 審查的 251 項與其中重疊，不把它們加總成更多獨立測試。"
         },
         {
-          "tag": "部分完成",
-          "title": "Gateway 已重啟；服務定義更新是另一件事",
-          "body": "已透過 Gateway control socket 核對新 worker、default profile 與安裝 SHA，Telegram connected。九個受查檔案與已驗收部署 hash 相同，修改時間均早於 worker 啟動。真實平台文字／SRT 測試通過。服務定義仍保留舊 KeepAlive，官方產生器已有不同重啟條件；單純重啟舊 job 不會重寫它。",
-          "recommendation": "在沒有進行中工作的本機終端機執行官方 hermes gateway start，再以 hermes gateway status 確認 stale 警告消失。此更新路徑會重新註冊服務並中斷目前 Gateway，不能在活躍驗收回合中假裝無中斷完成。"
+          "tag": "已驗證",
+          "title": "服務定義已更新，新 worker 正常運行",
+          "body": "官方服務更新完成後，重新核對 gateway status、control socket 與 launchd 已載入的 job：服務定義符合目前安裝、KeepAlive 的成功退出條件已生效，新 worker 回報正確 SHA，Telegram connected。先前剛更新後短暫出現的待重啟警告，在後續查核已消失。",
+          "evidence": "同時檢查磁碟 plist 與 launchd 已載入設定，而非只改檔案消除警告。單一 profile 未啟用 multiplex 的提示是使用模式說明，不是故障。"
         },
         {
           "tag": "已知限制",
@@ -146,7 +146,7 @@
       ]
     }
   ],
-  "boundary": "已完成來源碼／Patch／知識修正、354 項整合測試、正式 stack 重播、新 worker 身分核對、真實 Telegram formatter 與 SRT 往返、既有 cron 的只讀交付實測。尚未完成 launchd 服務定義更新，亦未執行下一次定時版本更新、完整上游測試集或壓力測試。平台探針經已安裝 CLI 的真實 formatter 傳送，不偽稱直接讀取 Gateway 的 Python 記憶體。",
+  "boundary": "已完成來源碼／Patch／知識修正、354 項整合測試、正式 stack 重播、新 worker 身分核對、真實 Telegram formatter 與 SRT 往返、既有 cron 的只讀交付實測。launchd 服務定義已更新並核對載入狀態。未執行下一次定時版本更新、完整上游測試集或壓力測試。平台探針經已安裝 CLI 的真實 formatter 傳送，不偽稱直接讀取 Gateway 的 Python 記憶體。",
   "sources": [
     {
       "title": "Hermes 官方更新與生命週期文件",
