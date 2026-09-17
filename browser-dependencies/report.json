@@ -5,10 +5,10 @@
   "state": {
     "audit": "complete",
     "deployment": "not_deployed",
-    "tests": "pending",
+    "tests": "passed",
     "browser_cleanup": "partial"
   },
-  "scope": "本頁記錄審核結果與後續處置，不是上一輪深度清理的重新驗收。已逐名關閉 13 個確認斷線且工作結案的 daemon，110 個保留；依賴修補仍在隔離測試，尚未部署。",
+  "scope": "本頁記錄審核結果與後續處置，不是上一輪深度清理的重新驗收。已逐名關閉 13 個確認斷線且工作結案的 daemon，110 個保留；七套件修補已在隔離環境通過測試與父代理離線重現，尚未部署。正式套用需在 Gateway 外建立停止使用該 runtime 的維護窗口，不能邊執行邊替換依賴。",
   "counts": {"browser_daemons": 123, "public_packages_scanned": 132},
   "browser_heading": "已逐名清理 13 個，其餘 110 個保留。",
   "browser_lead": "先做 1 個試點，確認退出與其他程序不變後，再逐名處理 12 個。每次均重新核對固定程序身分、已結束的呼叫與上層工作、無在途 IPC 和瀏覽器斷線狀態，使用官方生命週期停止；沒有批次殺程序。",
@@ -41,8 +41,10 @@
     {"id": "GHSA-mrfv-m5wm-5w6w", "title": "libsodium Ed25519 子群檢查缺漏", "fixed": "1.6.2", "condition": "需低階 Ed25519 點有效性檢查處理不可信點；不能推論一般高階簽章可偽造。本次沒有對 wheel 內原生函式庫做利用或完整性鑑識。", "url": "https://00f.net/2025/12/30/libsodium-vulnerability", "extra_sources": [{"title": "PyNaCl 1.6.2 changelog", "url": "https://raw.githubusercontent.com/pyca/pynacl/1.6.2/CHANGELOG.rst"}]}
   ],
   "next_steps": [
-    {"title": "先保存回復點，再做窄範圍依賴對齊", "body": "保存正式安裝清單、來源與 lock 的回復版本；先在隔離環境驗證五個 lock 已修復但實裝落後的套件。不直接全環境升級，也不以依賴 metadata 相容取代漏洞掃描。"},
-    {"title": "HTTPX2 成組修補，通過測試才部署", "body": "同步修正來源固定、延遲安裝與 lock，測 HTTP／SSE、OAuth、傳輸限制、CLI／Rich、PyNaCl 相關相容性。正式安裝、服務載入與功能實測分開記錄，再重新掃描實裝版本。"},
+    {"title": "七套件候選完成，其他 126 個套件不變", "body": "正式環境、來源與設定已有私有備份。候選版本為 Click 8.4.2、httpx2／httpcore2 2.12.0、pydantic-settings 2.14.2、Pygments 2.20.0、PyNaCl 1.6.2、Tornado 6.5.8。Click 保留既有 lock 的版本，避免影響其他延遲安裝依賴；httpcore2 依 httpx2 metadata 成對升級。"},
+    {"title": "隔離相容測試與真正回復演練通過", "body": "主測試 207 通過、0 失敗、3 跳過；父代理從固定來源與核驗過 hash 的 wheels 離線重建，重跑結果一致。規格與品質複審均通過候選；另補上失敗即拒絕的父代理驗收器，12 項正負測試通過，不再把外層指令 exit 0 當成驗收。原基線有 1 項既有 OpenCC packaging 政策不一致，候選依既有 exact-pin 規則補齊，沒有改測試。候選 132 個公共套件複掃無已知公告命中；只升七包再退回原版的演練，133 個原版本完全恢復。這不是正式環境已修復。"},
+    {"title": "正式部署卡在維護窗口，不是測試失敗", "body": "不能在活躍 worker 使用同一個 venv 時替換套件，否則會混用新舊模組。Gateway 也禁止從自身內部停止或重啟。須由 Gateway 外的操作者建立無在途工作與無並行寫入的窗口，再套持久 patch、升級七包、重啟並驗 Telegram。沒有繞過保護、另造重啟排程或擅自中斷工作。"},
+    {"title": "保留既有安全政策與已知相容性例外", "body": "全局 14 天套件 aging 保留；OpenCC 仍精確固定原版本。PyNaCl 沿用既有 uv voice override，收緊至修復版下界；一般 pip 不會讀此 override。已驗離線 Discord 加密 API，不宣稱真實通話、全上游 suite 或所有平台功能已通過。"},
     {"title": "瀏覽器首輪清理完成，保留未確認權屬的其餘程序", "body": "已用官方逐名停止方式完成 13 個已結案且斷線的目標，110 個保留。停止 daemon 不可復原原記憶體狀態；日後需要時由原工作正常建立新 daemon，不複製回舊 PID／socket。未新增排程，也未關閉使用者 Chrome 或 cmux。"}
   ],
   "limits": [
